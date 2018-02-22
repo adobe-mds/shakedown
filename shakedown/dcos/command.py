@@ -31,16 +31,18 @@ def run_command(
         :return: Output of command
         :rtype: string
     """
-
+    print("MDS Debugging.." + host)
     if not username:
         username = shakedown.cli.ssh_user
 
     if not key_path:
         key_path = shakedown.cli.ssh_key_file
 
+    print("MDS Debugging.." + key_path)
     key = validate_key(key_path)
 
-    transport = get_transport(host, username, key)
+    transport = mds_get_transport(host)
+    print("MDS Debugging5..Obtained transport")
 
     if transport:
         transport = start_transport(transport, username, key)
@@ -69,6 +71,7 @@ def run_command(
         try_close(channel)
         try_close(transport)
 
+        print("run_command ouput = " + output)
         return exit_status == 0, output
     else:
         print("error: unable to authenticate {}@{} with key {}".format(username, host, key_path))
@@ -85,6 +88,30 @@ def run_command_on_master(
     """
 
     return run_command(shakedown.master_ip(), command, username, key_path, noisy)
+
+
+def run_command_on_leader(
+        command,
+        username=None,
+        key_path=None,
+        noisy=True
+):
+    """ Run a command on the Mesos leader.  Important for Multi-Master.
+    """
+
+    return run_command(shakedown.master_leader_ip(), command, username, key_path, noisy)
+
+
+def run_command_on_marathon_leader(
+        command,
+        username=None,
+        key_path=None,
+        noisy=True
+):
+    """ Run a command on the Marathon leader
+    """
+
+    return run_command(shakedown.marathon_leader_ip(), command, username, key_path, noisy)
 
 
 def run_command_on_agent(
